@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block title %}Report {{ report.tracking_id }}{% endblock %}
+
+{% block content %}
+<div class="container page">
+
+  <div class="confirmation-header">
+    <div>
+      <h2>✓ Report Filed Successfully</h2>
+      <p class="text-sm text-muted mt-1">
+        Status: <span class="badge badge-{{ report.status }}">{{ report.status | replace('_',' ') | title }}</span>
+        &nbsp;|&nbsp;
+        Escalation level:
+        <span class="badge badge-{{ report.escalation_level or 'standard' }}">
+          {{ (report.escalation_level or 'standard') | title }}
+        </span>
+      </p>
+    </div>
+    <span class="tracking-chip">{{ report.tracking_id }}</span>
+  </div>
+
+  <div class="conf-layout mb-3">
+    {% if report.image_path %}
+      <img src="{{ url_for('static', filename=report.image_path) }}"
+           alt="{{ report.issue_type }}" class="conf-image">
+    {% else %}
+      <div class="conf-image-placeholder">No image</div>
+    {% endif %}
+
+    <div>
+      <div class="flex-between mb-1">
+        <span class="issue-type-label" style="font-size:1.1rem;">{{ report.issue_type or 'Unknown' }}</span>
+        {% if report.confidence_score is not none %}
+          {% if report.confidence_score < 0.7 %}
+            <div class="confidence-low">AI confidence: {{ (report.confidence_score * 100) | int }}% — Manual review recommended</div>
+          {% else %}
+            <span class="text-sm text-muted">Confidence: {{ (report.confidence_score * 100) | int }}%</span>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <div class="flex gap-2 mb-2" style="align-items:center;">
+        <div class="severity-bar">
+          {% for i in range(1, 6) %}
+            <div class="severity-seg {% if i <= (report.severity or 0) %}filled-{{ i }}{% endif %}"></div>
+          {% endfor %}
+        </div>
+        <span class="text-sm">Severity {{ report.severity }}/5</span>
+        <span class="text-sm text-muted">·</span>
+        <span class="text-sm">Impact {{ report.impact_score }}/10</span>
+      </div>
+
+      <p class="text-sm text-muted mb-2">
+        <strong>{{ report.department }}</strong> — {{ report.department_reasoning }}
+      </p>
+    </div>
+  </div>
+
+  <div class="ai-panel mb-3">
+    <div class="ai-panel-header">⚡ AI Analysis</div>
+    <div class="ai-panel-body">
+      <div class="ai-field">
+        <div class="ai-field-label">Description</div>
+        <div class="ai-field-value">{{ report.description }}</div>
+      </div>
+      <div class="ai-field">
+        <div class="ai-field-label">Community Impact</div>
+        <div class="ai-field-value">{{ report.impact_reasoning }}</div>
+      </div>
+    </div>
+  </div>
+
+  {% if report.is_recurring %}
+  <div class="recurrence-block mb-3">
+    <div class="recurrence-header">⚠ Recurring Issue — {{ report.recurrence_count }} prior report{{ 's' if report.recurrence_count != 1 }}</div>
+    <p class="recurrence-pattern">{{ report.recurrence_pattern }}</p>
+  </div>
+  {% endif %}
+
+  {% if report.escalation_letter %}
+  <div class="ai-panel mb-3">
+    <div class="ai-panel-header">📄 Escalation Letter Generated</div>
+    <div class="ai-panel-body">
+      <p class="text-sm text-muted mb-2">
+        A formal grievance letter has been generated. Download and send it to the responsible department.
+      </p>
+      <div class="letter-preview">{{ report.escalation_letter[:600] }}{% if report.escalation_letter|length > 600 %}…{% endif %}</div>
+      <div class="mt-2">
+        <a href="{{ url_for('download_letter', report_id=report.id) }}" class="btn btn-primary btn-sm">
+          ↓ Download Escalation Letter (.txt)
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <hr class="section-divider">
+
+  <div class="ai-panel mb-3">
+    <div class="ai-panel-header">💬 Ask the AI Assistant</div>
+    <div class="ai-panel-body">
+      <p class="text-sm text-muted mb-2">Ask questions about your report, next steps, or how to escalate.</p>
+      <div class="chat-panel">
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-msg assistant">
+            <div class="chat-bubble">
+              Hi! I'm the CivicLens Assistant. I can help you understand your report
+              ({{ report.tracking_id }}) and what to do next. What would you like to know?
+            </div>
+          </div>
+        </div>
+        <div class="chat-typing" id="chatTyping">Assistant is typing…</div>
+        <div class="chat-input-row">
+          <input type="text" class="chat-input" id="chatInput"
+                 placeholder="e.g. What department should I contact?" maxlength="300">
+          <button class="chat-send" id="chatSend">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex gap-2">
+    <a href="{{ url_for('feed') }}" class="btn btn-outline">View Community Feed →</a>
+    <a href="{{ url_for('issue_detail', report_id=report.id) }}" class="btn btn-outline">Issue Detail Page →</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='chat.js') }}"></script>
+<script>
+  // @ts-nocheck
+  initChat({{ report.id }}, '{{ url_for("chat", report_id=report.id) }}');
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Report an Issue{% endblock %}
+
+{% block content %}
+<div class="container page">
+  <div class="page-header">
+    <h1>Report a Civic Issue</h1>
+    <p>Upload a photo and provide location details. The AI will handle the rest.</p>
+  </div>
+
+  <div style="max-width: 640px;">
+    <form method="POST" action="{{ url_for('report_submit') }}" enctype="multipart/form-data" id="reportForm">
+
+      <div class="form-group">
+        <label class="form-label">Photo Evidence <span class="required">*</span></label>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('imageInput').click()">
+          <div class="upload-icon">📷</div>
+          <p><strong>Click to upload</strong> or drag and drop</p>
+          <p class="text-sm">JPG, PNG, WEBP up to 16MB</p>
+          <input type="file" name="image" id="imageInput" accept=".jpg,.jpeg,.png,.webp,.heic" required>
+        </div>
+        <div class="upload-preview" id="uploadPreview">
+          <img id="previewImg" src="" alt="Preview">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="location_text">Location Description <span class="required">*</span></label>
+        <input type="text" class="form-control" name="location_text" id="location_text"
+               placeholder="e.g. Near SBI ATM, MG Road, Solapur" required>
+        <p class="form-hint">Be as specific as possible — street name, landmark, city.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="area_type">Area Type <span class="required">*</span></label>
+        <select class="form-control" name="area_type" id="area_type">
+          <option value="residential">Residential</option>
+          <option value="commercial">Commercial</option>
+          <option value="school_zone">School Zone</option>
+          <option value="main_road">Main Road</option>
+          <option value="industrial">Industrial</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Coordinates <span style="color:var(--text-secondary);font-weight:400;">(optional — enables map placement)</span></label>
+        <div class="form-row">
+          <div>
+            <input type="text" class="form-control" name="latitude" placeholder="Latitude e.g. 17.6868">
+          </div>
+          <div>
+            <input type="text" class="form-control" name="longitude" placeholder="Longitude e.g. 75.9100">
+          </div>
+        </div>
+        <p class="form-hint">Right-click on Google Maps → "What's here?" to copy coordinates.</p>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-full" id="submitBtn">
+        Analyze &amp; File Report →
+      </button>
+      <p class="form-hint mt-1" style="text-align:center;">
+        AI analysis takes 10–20 seconds. Do not refresh the page.
+      </p>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const zone = document.getElementById('uploadZone');
+const input = document.getElementById('imageInput');
+const preview = document.getElementById('uploadPreview');
+const previewImg = document.getElementById('previewImg');
+const form = document.getElementById('reportForm');
+const submitBtn = document.getElementById('submitBtn');
+
+input.addEventListener('change', function() {
+  if (this.files && this.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      preview.style.display = 'block';
+      zone.style.borderColor = 'var(--resolved-green)';
+    };
+    reader.readAsDataURL(this.files[0]);
+  }
+});
+
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) {
+    input.files = e.dataTransfer.files;
+    input.dispatchEvent(new Event('change'));
+  }
+});
+
+form.addEventListener('submit', function() {
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Analyzing... please wait';
+});
+</script>
+{% endblock %}
