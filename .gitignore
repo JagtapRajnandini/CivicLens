@@ -1,0 +1,33 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Virtual environment
+venv/
+.venv/
+
+# Database — ephemeral, recreated on deploy
+*.db
+instance/
+
+# Uploaded images — ephemeral on Render
+# Exception: placeholder.jpg is required by seed.py
+static/uploads/*
+!static/uploads/placeholder.jpg
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
