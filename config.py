@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,10 +22,7 @@ class Config:
     # Gemini
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-    @staticmethod
-    def validate():
-        if not Config.GEMINI_API_KEY:
-            raise EnvironmentError(
-                "GEMINI_API_KEY is not set. "
-                "Add it to .env locally or to Render environment variables."
-            )
+    # Flask-Login
+    REMEMBER_COOKIE_DURATION = timedelta(days=7)
+    REMEMBER_COOKIE_SECURE = os.getenv('FLASK_ENV') == 'production'
+    REMEMBER_COOKIE_HTTPONLY = True
