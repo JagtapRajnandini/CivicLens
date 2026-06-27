@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from datetime import datetime, timezone, timedelta
 from flask import (
@@ -9,13 +10,27 @@ from config import Config
 from models import db, Report, ChatMessage
 from services import ai_service, report_service, insights_service
 import io
-
 app = Flask(__name__)
 app.config.from_object(Config)
 
+from models import login_manager
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Please log in to access the admin area.'
+login_manager.login_message_category = 'error'
+
+
+
 # Validate required environment variables at startup.
-# Raises EnvironmentError with a clear message if GEMINI_API_KEY is missing.
-Config.validate()
+# SystemExit (not EnvironmentError) ensures gunicorn logs the message cleanly
+# and exits with a non-zero code rather than crashing mid-request.
+if not app.config.get('GEMINI_API_KEY'):
+    print(
+        "FATAL: GEMINI_API_KEY is not set. "
+        "Add it to .env locally or to Render environment variables.",
+        file=sys.stderr
+    )
+    sys.exit(1)
 
 db.init_app(app)
 
@@ -23,7 +38,8 @@ with app.app_context():
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     db.create_all()
 
-# Simple in-memory cache for /insights (avoids a Gemini call on every page load)
+# Simple in-memory cache for /insights (avoids a Gemini call on every page load).
+# Resets on worker restart — acceptable for a single-worker deployment.
 _insights_cache = {'data': None, 'stats': None, 'expires': None}
 
 
@@ -65,11 +81,18 @@ def report_submit():
         flash('Please enter the issue location.', 'error')
         return redirect(url_for('report_form'))
 
+    # Validate coordinates are present (now mandatory)
+    latitude_raw = request.form.get('latitude', '').strip()
+    longitude_raw = request.form.get('longitude', '').strip()
+    if not latitude_raw or not longitude_raw:
+        flash('Location coordinates are required. Use "Get My Location" or enter them manually.', 'error')
+        return redirect(url_for('report_form'))
+
     form_data = {
         'location_text': location_text,
         'area_type': area_type,
-        'latitude': request.form.get('latitude', '').strip(),
-        'longitude': request.form.get('longitude', '').strip(),
+        'latitude': latitude_raw,
+        'longitude': longitude_raw,
     }
 
     try:
@@ -135,7 +158,7 @@ def feed():
         query = query.order_by(Report.created_at.desc())
     elif sort == 'unresolved':
         query = query.filter(Report.status != 'resolved').order_by(Report.created_at.desc())
-    else:  # default: recurring first
+    else:
         query = query.order_by(
             Report.is_recurring.desc(),
             Report.impact_score.desc(),
@@ -218,17 +241,20 @@ def map_data():
 @app.route('/admin')
 def admin():
     """
-    Admin dashboard. Displays all reports and stats.
-    Follow-up generation is now triggered explicitly via /admin/run-followup
-    rather than on every page load — preventing uncontrolled Gemini API calls.
+    Admin dashboard. Requires admin login.
+    Follow-up generation is triggered explicitly via /admin/run-followup.
     """
+    from flask_login import current_user
+    if not current_user.is_authenticated or not current_user.is_admin:
+        flash('Admin access required.', 'error')
+        return redirect(url_for('login'))
+
     total = Report.query.count()
     pending = Report.query.filter_by(status='reported').count()
     in_progress = Report.query.filter_by(status='in_progress').count()
     recurring = Report.query.filter_by(is_recurring=True).count()
     escalation_due = Report.query.filter_by(escalation_due=True).count()
 
-    # Count overdue reports so the admin can see how many would be processed
     cutoff = datetime.now(timezone.utc) - timedelta(days=3)
     overdue_count = Report.query.filter(
         Report.status == 'in_progress',
@@ -252,10 +278,10 @@ def admin():
 
 @app.route('/admin/run-followup', methods=['POST'])
 def admin_run_followup():
-    """
-    Explicitly trigger autonomous follow-up letter generation for overdue reports.
-    Moved out of the GET /admin handler to prevent Gemini calls on every page load.
-    """
+    from flask_login import current_user
+    if not current_user.is_authenticated or not current_user.is_admin:
+        abort(403)
+
     cutoff = datetime.now(timezone.utc) - timedelta(days=3)
     overdue = Report.query.filter(
         Report.status == 'in_progress',
@@ -272,9 +298,8 @@ def admin_run_followup():
             report.escalation_due = True
             db.session.commit()
             generated += 1
-            app.logger.info(f'Follow-up generated for {report.tracking_id}')
         except Exception as e:
-            app.logger.error(f'Follow-up generation failed for {report.tracking_id}: {e}')
+            app.logger.error(f'Follow-up failed for {report.tracking_id}: {e}')
 
     flash(f'Generated {generated} follow-up letter(s).', 'success')
     return redirect(url_for('admin'))
@@ -282,6 +307,10 @@ def admin_run_followup():
 
 @app.route('/admin/update', methods=['POST'])
 def admin_update():
+    from flask_login import current_user
+    if not current_user.is_authenticated or not current_user.is_admin:
+        abort(403)
+
     report_id = request.form.get('report_id')
     new_status = request.form.get('status')
 
@@ -304,16 +333,11 @@ def admin_update():
 
 @app.route('/insights')
 def insights():
-    """
-    Civic health analytics. Caches the Gemini result for 10 minutes to avoid
-    a billable API call on every page view.
-    """
-    if Report.query.count() == 0:
-        return render_template('insights.html', insights=None, stats=None)
+    if Report.query.count() < 5:
+        return render_template('insights.html', insights=None, stats=None,
+                               min_reports_needed=5)
 
     now = datetime.now(timezone.utc)
-
-    # Return cached result if still valid
     if (
         _insights_cache['data'] is not None
         and _insights_cache['expires'] is not None
@@ -323,9 +347,9 @@ def insights():
             'insights.html',
             insights=_insights_cache['data'],
             stats=_insights_cache['stats'],
+            min_reports_needed=None,
         )
 
-    # Cache miss — call Gemini and store result
     stats = insights_service.get_aggregated_stats()
     civic_insights = ai_service.generate_civic_insights(stats)
 
@@ -333,17 +357,48 @@ def insights():
     _insights_cache['stats'] = stats
     _insights_cache['expires'] = now + timedelta(minutes=10)
 
-    return render_template('insights.html', insights=civic_insights, stats=stats)
+    return render_template('insights.html', insights=civic_insights, stats=stats,
+                           min_reports_needed=None)
 
 
 @app.route('/insights/refresh', methods=['POST'])
 def insights_refresh():
-    """Force-expire the insights cache so the next /insights load fetches fresh data."""
+    from flask_login import current_user
+    if not current_user.is_authenticated or not current_user.is_admin:
+        abort(403)
     _insights_cache['data'] = None
     _insights_cache['stats'] = None
     _insights_cache['expires'] = None
     flash('Insights cache cleared. Reload the Insights page for fresh analysis.', 'success')
     return redirect(url_for('insights'))
+
+
+# ── AUTH ──────────────────────────────────────────────────────────────────────
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    from flask_login import login_user, current_user
+    from models import User
+    if current_user.is_authenticated:
+        return redirect(url_for('admin'))
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip().lower()
+        password = request.form.get('password', '')
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
+            login_user(user, remember=True)
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('admin'))
+        flash('Invalid username or password.', 'error')
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    from flask_login import logout_user
+    logout_user()
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('index'))
 
 
 # ── ENTRY POINT ───────────────────────────────────────────────────────────────
