@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block title %}{{ report.tracking_id }} — {{ report.issue_type }}{% endblock %}
+
+{% block content %}
+<div class="container page">
+  <div class="flex-between mb-3">
+    <a href="{{ url_for('feed') }}" class="btn btn-outline btn-sm">← Back to Feed</a>
+    <span class="tracking-chip">{{ report.tracking_id }}</span>
+  </div>
+
+  <div class="detail-layout mb-3">
+    <div>
+      {% if report.image_path %}
+        <img src="{{ url_for('static', filename=report.image_path) }}"
+             alt="{{ report.issue_type }}" class="detail-image">
+      {% else %}
+        <div class="card-img-placeholder" style="height:220px;">No image</div>
+      {% endif %}
+
+      <div class="card mt-2">
+        <div class="card-body">
+          <div class="ai-field-label mb-1">Status</div>
+          <span class="badge badge-{{ report.status }}" style="font-size:0.85rem;">
+            {{ report.status | replace('_',' ') | title }}
+          </span>
+          <div class="status-timeline mt-2">
+            {% for step, label in [('reported','Reported'),('under_review','Under Review'),('in_progress','In Progress'),('resolved','Resolved')] %}
+            <div class="status-step {% if report.status == step %}active{% endif %}">
+              <div class="status-dot"></div> {{ label }}
+            </div>
+            {% endfor %}
+          </div>
+          <hr class="section-divider">
+          <div class="ai-field-label mb-1">Filed</div>
+          <div class="text-sm">{{ report.created_at.strftime('%d %B %Y, %H:%M UTC') if report.created_at else 'Unknown' }}</div>
+          <div class="ai-field-label mt-2 mb-1">Location</div>
+          <div class="text-sm">{{ report.location_text }}</div>
+          <div class="ai-field-label mt-2 mb-1">Area Type</div>
+          <div class="text-sm">{{ report.area_type | replace('_',' ') | title }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="flex-between mb-2">
+        <div>
+          <span class="issue-type-label" style="font-size:1.3rem;">{{ report.issue_type or 'Unknown' }}</span>
+        </div>
+        {% if report.confidence_score is not none %}
+          {% if report.confidence_score < 0.7 %}
+            <div class="confidence-low">AI confidence: {{ (report.confidence_score * 100) | int }}%</div>
+          {% else %}
+            <span class="text-sm text-muted">Confidence: {{ (report.confidence_score * 100) | int }}%</span>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <div class="flex gap-2 mb-3" style="align-items:center;flex-wrap:wrap;">
+        <div class="severity-bar">
+          {% for i in range(1, 6) %}
+            <div class="severity-seg {% if i <= (report.severity or 0) %}filled-{{ i }}{% endif %}"></div>
+          {% endfor %}
+        </div>
+        <span>Severity {{ report.severity }}/5</span>
+        <span class="text-muted">·</span>
+        <span>Impact {{ report.impact_score }}/10</span>
+        <span class="badge badge-{{ report.escalation_level or 'standard' }}">
+          {{ (report.escalation_level or 'standard') | title }}
+        </span>
+        {% if report.is_recurring %}
+          <span class="badge badge-recurring">⚠ Recurring ×{{ report.recurrence_count }}</span>
+        {% endif %}
+        {% if report.escalation_due %}
+          <span class="badge badge-escalation">🔴 Escalation Due</span>
+        {% endif %}
+      </div>
+
+      <div class="ai-panel mb-3">
+        <div class="ai-panel-header">⚡ AI Analysis</div>
+        <div class="ai-panel-body">
+          <div class="ai-field">
+            <div class="ai-field-label">Description</div>
+            <div class="ai-field-value">{{ report.description }}</div>
+          </div>
+          <div class="ai-field">
+            <div class="ai-field-label">Assigned Department</div>
+            <div class="ai-field-value">{{ report.department }}</div>
+            {% if report.department_reasoning %}
+              <div class="ai-reasoning">{{ report.department_reasoning }}</div>
+            {% endif %}
+          </div>
+          <div class="ai-field">
+            <div class="ai-field-label">Community Impact</div>
+            <div class="ai-field-value">{{ report.impact_reasoning }}</div>
+          </div>
+        </div>
+      </div>
+
+      {% if report.is_recurring and report.recurrence_pattern %}
+      <div class="recurrence-block mb-3">
+        <div class="recurrence-header">⚠ Recurring Issue — {{ report.recurrence_count }} prior report{{ 's' if report.recurrence_count != 1 }}</div>
+        <p class="recurrence-pattern">{{ report.recurrence_pattern }}</p>
+      </div>
+      {% endif %}
+
+      {% if report.escalation_letter %}
+      <div class="ai-panel mb-3">
+        <div class="ai-panel-header">📄 Escalation Letter</div>
+        <div class="ai-panel-body">
+          <div class="letter-preview">{{ report.escalation_letter[:800] }}{% if report.escalation_letter|length > 800 %}…{% endif %}</div>
+          <div class="mt-2">
+            <a href="{{ url_for('download_letter', report_id=report.id) }}" class="btn btn-primary btn-sm">
+              ↓ Download (.txt)
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if report.followup_letter %}
+      <div class="ai-panel mb-3">
+        <div class="ai-panel-header" style="background:var(--alert-red);">🔴 Follow-Up Escalation Letter</div>
+        <div class="ai-panel-body">
+          <p class="text-sm text-muted mb-2">Auto-generated because this issue was unresolved for 3+ days.</p>
+          <div class="letter-preview">{{ report.followup_letter[:500] }}{% if report.followup_letter|length > 500 %}…{% endif %}</div>
+          <div class="mt-2">
+            <a href="{{ url_for('download_followup', report_id=report.id) }}" class="btn btn-danger btn-sm">
+              ↓ Download Follow-Up (.txt)
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="ai-panel">
+        <div class="ai-panel-header">💬 AI Assistant</div>
+        <div class="ai-panel-body">
+          <div class="chat-panel">
+            <div class="chat-messages" id="chatMessages">
+              {% for msg in chat_messages %}
+              <div class="chat-msg {{ msg.role }}">
+                <div class="chat-bubble">{{ msg.content }}</div>
+              </div>
+              {% endfor %}
+              {% if not chat_messages %}
+              <div class="chat-msg assistant">
+                <div class="chat-bubble">Ask me anything about this report or how to escalate it.</div>
+              </div>
+              {% endif %}
+            </div>
+            <div class="chat-typing" id="chatTyping">Assistant is typing…</div>
+            <div class="chat-input-row">
+              <input type="text" class="chat-input" id="chatInput"
+                     placeholder="Ask a question…" maxlength="300">
+              <button class="chat-send" id="chatSend">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='chat.js') }}"></script>
+<script>
+  // @ts-nocheck
+  initChat({{ report.id }}, '{{ url_for("chat", report_id=report.id) }}');
+</script>
+{% endblock %}
