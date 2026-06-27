@@ -1,7 +1,41 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
 
 db = SQLAlchemy()
+login_manager = LoginManager()
+
+
+class User(UserMixin, db.Model):
+    """
+    Admin user model. Only administrators have accounts.
+    Citizens use the platform anonymously.
+    """
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(256), nullable=False)
+    is_admin = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc)
+    )
+
+    def set_password(self, password: str):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f'<User {self.username}>'
+
+
+@login_manager.user_loader
+def load_user(user_id: str):
+    return db.session.get(User, int(user_id))
 
 
 class Report(db.Model):
@@ -35,7 +69,7 @@ class Report(db.Model):
     followup_generated_at = db.Column(db.DateTime, nullable=True)
     escalation_due = db.Column(db.Boolean, default=False)
 
-    # Map coordinates (user-provided, optional)
+    # Map coordinates — now mandatory on submission
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
 
