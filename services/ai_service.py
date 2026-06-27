@@ -16,14 +16,49 @@ def _json_config():
     )
 
 
+# The 10 issue categories CivicLens recognises.
+# These were chosen to match what Gemini Vision reliably identifies
+# in real Indian urban street/infrastructure photos.
+ISSUE_CATEGORIES = [
+    'Pothole',           # Road surface damage, craters, depressions
+    'Broken Streetlight', # Non-functional, damaged, or missing street lighting
+    'Water Leakage',     # Pipeline burst, water logging from leaking mains
+    'Garbage / Waste',   # Uncollected garbage, open dumping, littered roads
+    'Damaged Footpath',  # Broken pavement tiles, missing footpath sections
+    'Sewage Overflow',   # Open drains overflowing, sewage on road
+    'Fallen Tree',       # Tree blocking road or pathway
+    'Road Damage',       # General road deterioration, damaged road markings
+    'Construction Obstruction',  # Abandoned construction material blocking roads
+    'Other',             # Anything not fitting the above
+]
+
+CATEGORY_DEPARTMENTS = {
+    'Pothole': 'PWD (Roads)',
+    'Broken Streetlight': 'Street Lighting Department / MSEDCL',
+    'Water Leakage': 'Water Supply & Sewerage Board',
+    'Garbage / Waste': 'Solid Waste Management Department',
+    'Damaged Footpath': 'Municipal Roads Department',
+    'Sewage Overflow': 'Water Supply & Sewerage Board',
+    'Fallen Tree': 'Tree / Garden Department',
+    'Road Damage': 'PWD (Roads)',
+    'Construction Obstruction': 'Municipal Roads Department',
+    'Other': 'Municipal Corporation',
+}
+
+
 def analyze_image(image_path: str, location_text: str, area_type: str) -> dict:
     """
     Gemini Role 1+2: Vision analysis + community impact scoring.
-    Single API call. Returns classification, severity, department,
-    impact score, and confidence. Returns safe defaults on failure.
+
+    Uses gemini-2.0-flash for superior vision capability.
+    The prompt is structured in two clear sections:
+      SECTION A — what to observe (open-ended, no bias)
+      SECTION B — what to return (strict JSON schema)
+
+    Returns safe defaults on any failure.
     """
     default = {
-        'issue_type': 'Unknown',
+        'issue_type': 'Other',
         'severity': 3,
         'description': 'Unable to analyze image. Please review manually.',
         'department': 'Municipal Corporation',
@@ -38,7 +73,6 @@ def analyze_image(image_path: str, location_text: str, area_type: str) -> dict:
         with open(image_path, 'rb') as f:
             image_bytes = f.read()
 
-        # Detect MIME type from extension
         ext = image_path.rsplit('.', 1)[-1].lower()
         mime_map = {
             'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
@@ -46,48 +80,111 @@ def analyze_image(image_path: str, location_text: str, area_type: str) -> dict:
             'heic': 'image/heic',
         }
         mime_type = mime_map.get(ext, 'image/jpeg')
-
         image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
 
-        prompt = (
-            "You are CivicLens AI, a civic infrastructure analyst for Indian urban areas.\n"
-            "Analyze the image and the provided context.\n\n"
-            f"Location: {location_text}\n"
-            f"Area type: {area_type}\n\n"
-            "Return ONLY valid JSON with exactly these fields:\n"
-            "{\n"
-            '  "issue_type": "one of: Pothole, Broken Streetlight, Water Leakage, '
-            'Damaged Footpath, Waste Dumping, Damaged Road Marking, Fallen Tree, Sewage Overflow, Other",\n'
-            '  "severity": integer 1 to 5 where 1 is minor inconvenience and 5 is critical infrastructure failure,\n'
-            '  "description": "2 to 3 objective sentences describing what you see in the image",\n'
-            '  "department": "the responsible municipal department name",\n'
-            '  "department_reasoning": "one sentence explaining why this department is responsible",\n'
-            '  "impact_score": integer 1 to 10 based on how many people are affected,\n'
-            '  "impact_reasoning": "2 sentences describing who is affected and estimated population impact",\n'
-            '  "confidence_score": float between 0.0 and 1.0 representing your confidence\n'
-            "}"
-        )
+        categories_str = ', '.join(ISSUE_CATEGORIES)
+
+        prompt = f"""You are CivicLens AI, a civic infrastructure analyst specialising in Indian urban issues.
+
+CONTEXT:
+- Location: {location_text}
+- Area type: {area_type}
+- The image was uploaded by a citizen to report a civic problem.
+
+TASK:
+Look at this image carefully. Identify the primary civic issue visible.
+The image may show: road damage, garbage, broken infrastructure, water problems, lighting issues, or other urban problems.
+If the image quality is poor or the issue is unclear, still provide your best classification.
+
+VALID ISSUE CATEGORIES (choose the single most accurate one):
+{categories_str}
+
+SEVERITY SCALE:
+1 = Minor (cosmetic, inconvenient but not dangerous)
+2 = Low (causes minor disruption)
+3 = Moderate (regular disruption to daily life)
+4 = High (significant hazard or affecting large area)
+5 = Critical (immediate danger, infrastructure failure)
+
+IMPACT SCORE (1-10):
+Consider: How many people are affected? Is this a main road or side lane? Are there schools/hospitals nearby? What is the time of day?
+
+Return a JSON object with exactly these keys:
+{{
+  "issue_type": "<one of the valid categories above>",
+  "severity": <integer 1-5>,
+  "description": "<2-3 objective sentences describing exactly what you see: the type of damage, approximate size or extent, and any immediate hazard visible>",
+  "department": "<name of the responsible municipal department>",
+  "department_reasoning": "<one sentence explaining the department assignment>",
+  "impact_score": <integer 1-10>,
+  "impact_reasoning": "<2 sentences: who is affected and why this location matters>",
+  "confidence_score": <float 0.0-1.0, your confidence that this classification is correct>
+}}"""
 
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.0-flash',
             contents=[prompt, image_part],
             config=_json_config(),
         )
         result = json.loads(response.text)
 
+        # Normalise issue_type to known categories
+        issue_type = str(result.get('issue_type', 'Other'))
+        if issue_type not in ISSUE_CATEGORIES:
+            # Fuzzy match to closest known category
+            issue_type = _fuzzy_match_category(issue_type)
+
+        # Use department from our mapping if Gemini returned something odd
+        department = str(result.get('department', CATEGORY_DEPARTMENTS.get(issue_type, 'Municipal Corporation')))
+        if len(department) < 3:
+            department = CATEGORY_DEPARTMENTS.get(issue_type, 'Municipal Corporation')
+
         return {
-            'issue_type': str(result.get('issue_type', default['issue_type'])),
-            'severity': int(result.get('severity', default['severity'])),
+            'issue_type': issue_type,
+            'severity': max(1, min(5, int(result.get('severity', 3)))),
             'description': str(result.get('description', default['description'])),
-            'department': str(result.get('department', default['department'])),
+            'department': department,
             'department_reasoning': str(result.get('department_reasoning', default['department_reasoning'])),
-            'impact_score': int(result.get('impact_score', default['impact_score'])),
+            'impact_score': max(1, min(10, int(result.get('impact_score', 5)))),
             'impact_reasoning': str(result.get('impact_reasoning', default['impact_reasoning'])),
-            'confidence_score': float(result.get('confidence_score', default['confidence_score'])),
+            'confidence_score': max(0.0, min(1.0, float(result.get('confidence_score', 0.5)))),
         }
     except Exception as e:
         current_app.logger.error(f'Gemini Role 1+2 error: {e}')
         return default
+
+
+def _fuzzy_match_category(raw: str) -> str:
+    """Map Gemini's free-form category to the nearest known category."""
+    raw_lower = raw.lower()
+    mapping = {
+        'garbage': 'Garbage / Waste',
+        'waste': 'Garbage / Waste',
+        'litter': 'Garbage / Waste',
+        'dump': 'Garbage / Waste',
+        'trash': 'Garbage / Waste',
+        'pothole': 'Pothole',
+        'road': 'Pothole',
+        'crater': 'Pothole',
+        'light': 'Broken Streetlight',
+        'streetlight': 'Broken Streetlight',
+        'lamp': 'Broken Streetlight',
+        'water': 'Water Leakage',
+        'leak': 'Water Leakage',
+        'pipe': 'Water Leakage',
+        'flood': 'Water Leakage',
+        'footpath': 'Damaged Footpath',
+        'pavement': 'Damaged Footpath',
+        'sidewalk': 'Damaged Footpath',
+        'sewage': 'Sewage Overflow',
+        'drain': 'Sewage Overflow',
+        'tree': 'Fallen Tree',
+        'construction': 'Construction Obstruction',
+    }
+    for keyword, category in mapping.items():
+        if keyword in raw_lower:
+            return category
+    return 'Other'
 
 
 def analyze_recurrence(new_report: dict, prior_reports: list) -> dict:
@@ -122,7 +219,7 @@ def analyze_recurrence(new_report: dict, prior_reports: list) -> dict:
             f"- Description: {new_report.get('description')}\n\n"
             "Prior reports at the same location with the same issue type:\n"
             f"{json.dumps(prior_summary, indent=2)}\n\n"
-            "Return ONLY valid JSON:\n"
+            "Analyze the pattern. Return ONLY valid JSON:\n"
             "{\n"
             '  "is_recurring": true,\n'
             f'  "recurrence_count": {len(prior_reports)},\n'
@@ -152,9 +249,7 @@ def analyze_recurrence(new_report: dict, prior_reports: list) -> dict:
 
 
 def generate_escalation_letter(report) -> str:
-    """
-    Gemini Role 4: Formal RTI-compatible grievance letter.
-    """
+    """Gemini Role 4: Formal RTI-compatible grievance letter."""
     try:
         client = _get_client()
 
@@ -213,10 +308,7 @@ def generate_escalation_letter(report) -> str:
 
 
 def generate_followup_letter(report) -> str:
-    """
-    Gemini Role 5: Autonomous follow-up escalation letter.
-    Triggered automatically for stale In Progress reports.
-    """
+    """Gemini Role 5: Autonomous follow-up escalation letter."""
     try:
         client = _get_client()
 
@@ -277,9 +369,7 @@ def generate_followup_letter(report) -> str:
 
 
 def chat_with_assistant(report, conversation_history: list, user_message: str) -> str:
-    """
-    Gemini Role 6: Issue-scoped citizen AI assistant.
-    """
+    """Gemini Role 6: Issue-scoped citizen AI assistant."""
     try:
         client = _get_client()
 
@@ -323,9 +413,7 @@ def chat_with_assistant(report, conversation_history: list, user_message: str) -
 
 
 def generate_civic_insights(stats: dict) -> dict:
-    """
-    Gemini Role 7: Civic health analysis for admin insights page.
-    """
+    """Gemini Role 7: Civic health analysis for admin insights page."""
     default = {
         'civic_health_score': 50,
         'top_issues': [],
