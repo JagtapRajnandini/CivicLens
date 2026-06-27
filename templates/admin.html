@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container page">
+  <div class="flex-between mb-3">
+    <div class="page-header" style="margin-bottom:0;">
+      <h1>Admin Dashboard</h1>
+      <p>Manage all reported civic issues and generate follow-up letters.</p>
+    </div>
+    <div style="display:flex;gap:0.75rem;align-items:center;">
+      <a href="{{ url_for('insights') }}" class="btn btn-primary">Civic Insights →</a>
+    </div>
+  </div>
+
+  {% if overdue_count > 0 %}
+  <div class="ai-panel mb-3" style="border-left:4px solid var(--alert-red);">
+    <div class="ai-panel-header" style="background:var(--alert-red);">
+      🔴 {{ overdue_count }} report{{ 's' if overdue_count != 1 }} overdue for follow-up
+    </div>
+    <div class="ai-panel-body" style="display:flex;align-items:center;gap:1rem;">
+      <p class="text-sm text-muted" style="margin:0;">
+        These In Progress reports have been open for 3+ days with no follow-up letter generated.
+      </p>
+      <form method="POST" action="{{ url_for('admin_run_followup') }}" style="flex-shrink:0;">
+        <button type="submit" class="btn btn-danger btn-sm">Generate Follow-Up Letters</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="stats-row mb-3">
+    <div class="stat-card">
+      <span class="stat-num">{{ total }}</span>
+      <span class="stat-label">Total Reports</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ pending }}</span>
+      <span class="stat-label">Pending</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ in_progress }}</span>
+      <span class="stat-label">In Progress</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" style="color:var(--alert-red);">{{ escalation_due }}</span>
+      <span class="stat-label">🔴 Escalation Due</span>
+    </div>
+  </div>
+
+  {% if reports %}
+  <div style="overflow-x:auto;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Image</th>
+          <th>Type</th>
+          <th>Location</th>
+          <th>Sev</th>
+          <th>Impact</th>
+          <th>Recurring</th>
+          <th>Status</th>
+          <th>Escalation</th>
+          <th>Filed</th>
+          <th>Update</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reports %}
+        <tr>
+          <td class="font-mono text-sm">{{ r.tracking_id }}</td>
+          <td>
+            {% if r.image_path %}
+              <img src="{{ url_for('static', filename=r.image_path) }}" class="admin-thumb" alt="">
+            {% else %}
+              <div class="admin-thumb-placeholder"></div>
+            {% endif %}
+          </td>
+          <td>{{ r.issue_type or '—' }}</td>
+          <td class="text-sm" style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            {{ r.location_text }}
+          </td>
+          <td>
+            <div class="severity-bar">
+              {% for i in range(1, 6) %}
+                <div class="severity-seg {% if i <= (r.severity or 0) %}filled-{{ i }}{% endif %}"></div>
+              {% endfor %}
+            </div>
+          </td>
+          <td>{{ r.impact_score }}/10</td>
+          <td>
+            {% if r.is_recurring %}
+              <span class="badge badge-recurring">⚠ ×{{ r.recurrence_count }}</span>
+            {% else %}
+              <span class="text-muted text-sm">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge badge-{{ r.status }}">{{ r.status | replace('_',' ') | title }}</span>
+          </td>
+          <td>
+            {% if r.escalation_due %}
+              <span class="badge badge-escalation">🔴 Due</span>
+              {% if r.followup_letter %}
+                <a href="{{ url_for('download_followup', report_id=r.id) }}" class="btn btn-sm btn-danger mt-1">↓</a>
+              {% endif %}
+            {% else %}
+              <span class="text-muted text-sm">—</span>
+            {% endif %}
+          </td>
+          <td class="text-sm text-muted">{{ r.created_at.strftime('%d %b') if r.created_at else '—' }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('admin_update') }}" style="display:flex;gap:0.3rem;align-items:center;">
+              <input type="hidden" name="report_id" value="{{ r.id }}">
+              <select name="status" class="admin-select">
+                {% for s in ['reported','under_review','in_progress','resolved'] %}
+                  <option value="{{ s }}" {% if r.status == s %}selected{% endif %}>
+                    {{ s | replace('_',' ') | title }}
+                  </option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-sm btn-primary">✓</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>No reports yet</h3>
+    <p>Reports filed by citizens will appear here.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

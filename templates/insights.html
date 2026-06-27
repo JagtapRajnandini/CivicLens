@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Civic Insights{% endblock %}
+
+{% block content %}
+<div class="container page">
+  <div class="flex-between mb-3">
+    <div class="page-header" style="margin-bottom:0;">
+      <h1>Civic Health Report</h1>
+      <p>AI-generated analysis of all reported issues. Results are cached for 10 minutes.</p>
+    </div>
+    {% if insights %}
+    <form method="POST" action="{{ url_for('insights_refresh') }}" style="flex-shrink:0;">
+      <button type="submit" class="btn btn-outline btn-sm">↻ Refresh Analysis</button>
+    </form>
+    {% endif %}
+  </div>
+
+  {% if not insights %}
+  <div class="empty-state">
+    <h3>No data available</h3>
+    <p>File at least one report before generating civic insights.</p>
+    <a href="{{ url_for('report_form') }}" class="btn btn-primary">Report an Issue</a>
+  </div>
+  {% else %}
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="flex-between mb-1">
+        <div>
+          <div class="meta mb-1">Civic Health Score</div>
+          <div style="font-size:2.5rem;font-weight:700;color:
+            {% if insights.civic_health_score >= 70 %}var(--resolved-green)
+            {% elif insights.civic_health_score >= 40 %}var(--warning-amber)
+            {% else %}var(--alert-red){% endif %};">
+            {{ insights.civic_health_score }} <span style="font-size:1rem;color:var(--text-secondary);">/ 100</span>
+          </div>
+        </div>
+        <div style="font-size:0.88rem;color:var(--text-secondary);text-align:right;">
+          <div>{{ stats.total }} total reports</div>
+          <div>{{ stats.resolution_rate }}% resolved</div>
+          <div>{{ stats.recurring_count }} recurring issues</div>
+        </div>
+      </div>
+      <div class="health-score-bar">
+        <div class="health-score-fill
+          {% if insights.civic_health_score >= 70 %}health-high
+          {% elif insights.civic_health_score >= 40 %}health-mid
+          {% else %}health-low{% endif %}"
+          style="width:{{ insights.civic_health_score }}%">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="ai-panel-header" style="background:var(--civic-deep);color:#fff;padding:0.75rem 1.25rem;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">
+      📊 Resolution Analysis
+    </div>
+    <div class="card-body">
+      <p>{{ insights.resolution_analysis }}</p>
+    </div>
+  </div>
+
+  <div class="insights-grid mb-3">
+    <div class="card">
+      <div class="ai-panel-header" style="background:var(--civic-deep);color:#fff;padding:0.75rem 1.25rem;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">
+        🔝 Top Issue Types
+      </div>
+      <div class="card-body">
+        {% if insights.top_issues %}
+          {% for issue in insights.top_issues %}
+          <div class="flex-between mb-2">
+            <span class="text-sm font-bold">{{ issue.type }}</span>
+            <div style="text-align:right;">
+              <span class="badge badge-reported">{{ issue.count }} reports</span>
+              <span class="text-sm text-muted ml-1">avg sev {{ issue.avg_severity }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted text-sm">No data.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ai-panel-header" style="background:var(--civic-deep);color:#fff;padding:0.75rem 1.25rem;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">
+        📍 Chronic Zones
+      </div>
+      <div class="card-body">
+        {% if insights.chronic_zones %}
+          {% for zone in insights.chronic_zones %}
+          <div class="mb-2">
+            <div class="text-sm font-bold">{{ zone.location }}</div>
+            <div class="text-sm text-muted">{{ zone.report_count }} reports · {{ zone.primary_issue }}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted text-sm">No chronic zones detected.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ai-panel-header" style="background:var(--civic-deep);color:#fff;padding:0.75rem 1.25rem;font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">
+      💡 AI Recommendations
+    </div>
+    <div class="card-body">
+      {% for rec in insights.recommendations %}
+        <div class="rec-item">{{ rec }}</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
