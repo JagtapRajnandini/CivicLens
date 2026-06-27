@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CivicLens{% endblock %} — CivicLens</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="{{ url_for('index') }}" class="nav-brand">Civic<span>Lens</span></a>
+    <div class="nav-links">
+      <a href="{{ url_for('feed') }}">Community Feed</a>
+      <a href="{{ url_for('map_view') }}">Issue Map</a>
+      <a href="{{ url_for('insights') }}">Insights</a>
+      <a href="{{ url_for('admin') }}">Admin</a>
+      <a href="{{ url_for('report_form') }}" class="btn-nav">Report Issue</a>
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container">
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer style="background:var(--civic-deep);color:#94a3b8;text-align:center;padding:1.25rem;font-size:0.8rem;margin-top:4rem;">
+    CivicLens &mdash; AI-powered civic accountability &nbsp;|&nbsp;
+    <a href="{{ url_for('report_form') }}" style="color:#64a8f0;">Report an Issue</a>
+    &nbsp;|&nbsp;
+    <a href="{{ url_for('feed') }}" style="color:#64a8f0;">Community Feed</a>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+
+</body>
+</html>
