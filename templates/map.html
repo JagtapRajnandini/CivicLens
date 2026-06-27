@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Issue Map{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+
+{% block content %}
+<div class="container page">
+  <div class="page-header">
+    <h1>Issue Map</h1>
+    <p>Geographic view of all reported issues. Only reports with coordinates appear as pins.</p>
+  </div>
+  <div id="map"></div>
+  <p class="form-hint mt-1">
+    Pin colors: 🟢 Low severity · 🟡 Medium · 🟠 High · 🔴 Critical
+    · ⚠ Orange border = Recurring issue
+  </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='map.js') }}"></script>
+<script>
+  initMap('{{ url_for("map_data") }}');
+</script>
+{% endblock %}
