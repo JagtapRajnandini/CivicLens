@@ -11,6 +11,7 @@
   <div style="max-width: 640px;">
     <form method="POST" action="{{ url_for('report_submit') }}" enctype="multipart/form-data" id="reportForm">
 
+      <!-- PHOTO UPLOAD -->
       <div class="form-group">
         <label class="form-label">Photo Evidence <span class="required">*</span></label>
         <div class="upload-zone" id="uploadZone" onclick="document.getElementById('imageInput').click()">
@@ -24,13 +25,15 @@
         </div>
       </div>
 
+      <!-- LOCATION TEXT -->
       <div class="form-group">
         <label class="form-label" for="location_text">Location Description <span class="required">*</span></label>
         <input type="text" class="form-control" name="location_text" id="location_text"
                placeholder="e.g. Near SBI ATM, MG Road, Solapur" required>
-        <p class="form-hint">Be as specific as possible — street name, landmark, city.</p>
+        <p class="form-hint">Street name, nearby landmark, and city.</p>
       </div>
 
+      <!-- AREA TYPE -->
       <div class="form-group">
         <label class="form-label" for="area_type">Area Type <span class="required">*</span></label>
         <select class="form-control" name="area_type" id="area_type">
@@ -42,17 +45,41 @@
         </select>
       </div>
 
+      <!-- COORDINATES — MANDATORY -->
       <div class="form-group">
-        <label class="form-label">Coordinates <span style="color:var(--text-secondary);font-weight:400;">(optional — enables map placement)</span></label>
+        <label class="form-label">
+          Coordinates <span class="required">*</span>
+          <span style="color:var(--text-secondary);font-weight:400;font-size:0.85rem;">
+            — required for map placement
+          </span>
+        </label>
+
+        <!-- GPS button -->
+        <button type="button" id="gpsBtn" class="btn btn-outline"
+                style="margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem;">
+          <span id="gpsBtnIcon">📍</span>
+          <span id="gpsBtnText">Use My Current Location</span>
+        </button>
+
+        <div id="locationStatus" class="form-hint" style="display:none;margin-bottom:0.5rem;"></div>
+
         <div class="form-row">
           <div>
-            <input type="text" class="form-control" name="latitude" placeholder="Latitude e.g. 17.6868">
+            <input type="text" class="form-control" name="latitude" id="latitude"
+                   placeholder="Latitude e.g. 17.6868" required pattern="-?\d+\.?\d*"
+                   title="Enter a valid latitude">
           </div>
           <div>
-            <input type="text" class="form-control" name="longitude" placeholder="Longitude e.g. 75.9100">
+            <input type="text" class="form-control" name="longitude" id="longitude"
+                   placeholder="Longitude e.g. 75.9100" required pattern="-?\d+\.?\d*"
+                   title="Enter a valid longitude">
           </div>
         </div>
-        <p class="form-hint">Right-click on Google Maps → "What's here?" to copy coordinates.</p>
+        <p class="form-hint mt-1">
+          Or: Right-click any point on
+          <a href="https://maps.google.com" target="_blank" rel="noopener">Google Maps</a>
+          → click the coordinates shown → they copy to clipboard.
+        </p>
       </div>
 
       <button type="submit" class="btn btn-primary w-full" id="submitBtn">
@@ -68,11 +95,12 @@
 
 {% block scripts %}
 <script>
-const zone = document.getElementById('uploadZone');
-const input = document.getElementById('imageInput');
-const preview = document.getElementById('uploadPreview');
-const previewImg = document.getElementById('previewImg');
-const form = document.getElementById('reportForm');
+// ── Upload zone ──────────────────────────────────────────────────
+const zone      = document.getElementById('uploadZone');
+const input     = document.getElementById('imageInput');
+const preview   = document.getElementById('uploadPreview');
+const previewImg= document.getElementById('previewImg');
+const form      = document.getElementById('reportForm');
 const submitBtn = document.getElementById('submitBtn');
 
 input.addEventListener('change', function() {
@@ -98,7 +126,71 @@ zone.addEventListener('drop', e => {
   }
 });
 
-form.addEventListener('submit', function() {
+// ── GPS location ─────────────────────────────────────────────────
+const gpsBtn    = document.getElementById('gpsBtn');
+const gpsBtnIcon= document.getElementById('gpsBtnIcon');
+const gpsBtnText= document.getElementById('gpsBtnText');
+const statusEl  = document.getElementById('locationStatus');
+const latInput  = document.getElementById('latitude');
+const lngInput  = document.getElementById('longitude');
+
+function setLocationStatus(msg, color) {
+  statusEl.style.display = 'block';
+  statusEl.style.color = color || 'var(--text-secondary)';
+  statusEl.textContent = msg;
+}
+
+gpsBtn.addEventListener('click', function() {
+  if (!navigator.geolocation) {
+    setLocationStatus('GPS not supported in this browser. Please enter coordinates manually.', 'var(--alert-red)');
+    return;
+  }
+
+  gpsBtnIcon.textContent = '⏳';
+  gpsBtnText.textContent = 'Getting location…';
+  gpsBtn.disabled = true;
+
+  navigator.geolocation.getCurrentPosition(
+    function(position) {
+      const lat = position.coords.latitude.toFixed(6);
+      const lng = position.coords.longitude.toFixed(6);
+      latInput.value = lat;
+      lngInput.value = lng;
+      gpsBtnIcon.textContent = '✅';
+      gpsBtnText.textContent = 'Location obtained';
+      gpsBtn.style.borderColor = 'var(--resolved-green)';
+      gpsBtn.style.color = 'var(--resolved-green)';
+      setLocationStatus(
+        `📍 GPS coordinates captured: ${lat}, ${lng} (accuracy ±${Math.round(position.coords.accuracy)}m)`,
+        'var(--resolved-green)'
+      );
+    },
+    function(error) {
+      gpsBtnIcon.textContent = '📍';
+      gpsBtnText.textContent = 'Use My Current Location';
+      gpsBtn.disabled = false;
+      const messages = {
+        1: 'Location permission denied. Please allow location access or enter coordinates manually.',
+        2: 'Location unavailable. Please enter coordinates manually.',
+        3: 'Location request timed out. Please try again or enter coordinates manually.',
+      };
+      setLocationStatus(messages[error.code] || 'Location error. Please enter coordinates manually.', 'var(--alert-orange)');
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+});
+
+// ── Form submission guard ────────────────────────────────────────
+form.addEventListener('submit', function(e) {
+  if (!latInput.value.trim() || !lngInput.value.trim()) {
+    e.preventDefault();
+    setLocationStatus(
+      'Coordinates are required. Use "Get My Location" or enter them manually.',
+      'var(--alert-red)'
+    );
+    latInput.focus();
+    return;
+  }
   submitBtn.disabled = true;
   submitBtn.textContent = 'Analyzing... please wait';
 });
