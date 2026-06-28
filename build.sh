@@ -3,4 +3,4 @@ set -e
 
 pip install -r requirements.txt
 python create_admin_auto.py
-python seed.py
+echo "no" | python seed.py
