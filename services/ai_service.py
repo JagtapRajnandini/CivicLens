@@ -122,7 +122,7 @@ Return a JSON object with exactly these keys:
 }}"""
 
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-2.0-flash-lite',
             contents=[prompt, image_part],
             config=_json_config(),
         )
@@ -232,7 +232,7 @@ def analyze_recurrence(new_report: dict, prior_reports: list) -> dict:
         )
 
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.0-flash-lite',
             contents=prompt,
             config=_json_config(),
         )
@@ -291,7 +291,7 @@ def generate_escalation_letter(report) -> str:
         )
 
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.0-flash-lite',
             contents=prompt,
         )
         return response.text.strip()
@@ -352,7 +352,7 @@ def generate_followup_letter(report) -> str:
         )
 
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.0-flash-lite',
             contents=prompt,
         )
         return response.text.strip()
@@ -400,7 +400,7 @@ def chat_with_assistant(report, conversation_history: list, user_message: str) -
         prompt += f"Citizen question: {user_message}\n\nAnswer directly."
 
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.0-flash-lite',
             contents=prompt,
         )
         return response.text.strip()
@@ -446,7 +446,7 @@ def generate_civic_insights(stats: dict) -> dict:
         )
 
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.0-flash-lite',
             contents=prompt,
             config=_json_config(),
         )
