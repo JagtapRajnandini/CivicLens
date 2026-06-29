@@ -1,469 +1,545 @@
-# CivicLens
+# CivicLens — AI-Powered Civic Accountability Platform
 
-**AI-powered civic issue reporting, tracking, and accountability for Indian urban communities.**
+<div align="center">
 
-[![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://python.org)
-[![Flask](https://img.shields.io/badge/Flask-3.0.3-green.svg)](https://flask.palletsprojects.com)
-[![Gemini](https://img.shields.io/badge/Google%20Gemini-2.0%20Flash%20Lite-orange.svg)](https://ai.google.dev)
-[![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.0.3-000000?style=flat&logo=flask&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini_AI-2.0_Flash-4285F4?style=flat&logo=google&logoColor=white)
+![Cloud Run](https://img.shields.io/badge/Google_Cloud_Run-4285F4?style=flat&logo=googlecloud&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat&logo=sqlite&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 
----
+**Snap a photo. AI analyzes the problem. A formal escalation letter is generated — in under 30 seconds.**
 
-## Hackathon Information
+[🌐 Live App](https://civiclens-917815028143.asia-southeast1.run.app) · [📁 Repository](https://github.com/JagtapRajnandini/CivicLens) · [📄 Submission Doc](https://docs.google.com/document/d/1My_zUBl6AuNe4NeJc-VeWB8FaPOk6v-AGC-doZM1n_A/edit?usp=sharing)
 
-| Field | Detail |
-|---|---|
-| **Competition** | Coding Ninjas × Google for Developers — Vibe2Ship 2026 |
-| **Problem Statement** | PS2 — Community Hero: Hyperlocal Problem Solver |
-| **Participant** | Rajnandini Jagtap |
+</div>
 
 ---
 
-## Live Demo
+## 🏆 Hackathon Information
 
 | | |
 |---|---|
-| **Deployed URL** | https://civiclens-l853.onrender.com |
-| **Admin Login** | https://civiclens-l853.onrender.com/login |
-| **Username** | `admin` |
-| **Password** | `CivicLens@2026` |
-
-> The app is hosted on Render's free tier. If the page takes 30–50 seconds to load on first visit, this is normal — Render spins down free services after inactivity. Wait for the page to fully load before interacting.
-
-Citizens do not need to log in. All report submission, feed, map, and insights features are publicly accessible.
+| **Hackathon** | Vibe2Ship 2026 — Coding Ninjas × Google for Developers |
+| **Problem Statement** | Civic Issue Reporting & Accountability |
+| **Track** | AI-Powered Applications using Google Gemini API |
+| **Submitted by** | Rajnandini Jagtap |
+| **Deployment** | Google Cloud Run (via Google AI Studio) |
 
 ---
 
-## Elevator Pitch
+## 🎯 Elevator Pitch
 
-CivicLens transforms a citizen's photo into a formally documented, tracked, and escalation-ready civic complaint — in under 30 seconds. The AI agent classifies the issue, detects whether it is a recurring problem at the same location, scores its community impact, generates an RTI-compatible grievance letter, and provides a citizen assistant for follow-up guidance. Administrators get an analytics dashboard with AI-generated civic health insights. No government API integration is required — impact is delivered through the document itself.
+India loses ₹6,000 crores annually from delayed infrastructure fixes, yet 83% of citizens never report civic issues because they don't know how or who to ask.
 
----
-
-## Problem Statement
-
-Indian citizens face a fragmented, opaque, and unresponsive civic reporting ecosystem:
-
-- Reporting channels (WhatsApp groups, social media) produce no official record.
-- Existing portals require manual categorization, department knowledge, and follow-through.
-- Chronic problems at the same location are treated as new issues every time.
-- Citizens have no usable output from the complaint process — no letter, no tracking, no escalation path.
-
-The result: infrastructure problems go unresolved, accountability is absent, and community frustration compounds.
+CivicLens removes that barrier. A citizen uploads a photo of any infrastructure problem — pothole, broken streetlight, sewage overflow — and Gemini AI takes over: classifying the issue, scoring its severity and community impact, detecting whether it is a recurring problem, routing it to the correct municipal department, and generating a ready-to-submit formal RTI-compatible escalation letter. Everything happens in under 30 seconds, with no civic knowledge required.
 
 ---
 
-## Solution
+## 🔍 Problem Overview
 
-CivicLens is a civic AI agent — not a form, not a chatbot, not a reporting portal.
+Urban India's civic accountability gap has three structural causes:
 
-A citizen uploads one photo. CivicLens autonomously:
+**Citizens don't know how to report.** Filing a civic complaint requires knowing the correct municipal department, the right form, and the right language — knowledge most people don't have.
 
-1. **Identifies** the civic issue type using Gemini Vision
-2. **Scores** community impact based on location context
-3. **Detects recurrence** — whether this location has prior reports of the same problem
-4. **Routes** the report to the correct municipal department with reasoning
-5. **Generates** a formal RTI-compatible grievance letter ready to send
-6. **Escalates** stale unresolved issues by generating follow-up letters
-7. **Answers questions** about the report via a citizen AI assistant
-8. **Analyzes** aggregate data into a civic health score with actionable recommendations
+**Problems repeat without consequence.** The same pothole gets reported 15 times over 6 months. Without pattern detection, each report is treated as new, and systemic problems are never escalated.
+
+**Formal escalation is inaccessible.** RTI (Right to Information) letters and formal complaints require precise legal language. Most citizens can't write them and can't afford to pay someone who can.
 
 ---
 
-## Key Features
+## ✅ Solution Overview
 
-### Citizen Workflow
+CivicLens is a full-stack web application that uses a **multi-role Gemini AI pipeline** to transform a photo and a location into a complete, actionable civic complaint with a formal escalation letter — automatically.
+
+The workflow is:
+1. Citizen uploads a photo and enters the location
+2. Gemini Vision classifies the issue and scores severity
+3. The system checks whether this location has prior reports (recurrence detection)
+4. Gemini generates a formal escalation letter addressed to the correct department
+5. The report is visible on a community feed and interactive map
+6. If the issue is not resolved within 3 days, an autonomous follow-up letter is generated
+7. Aggregated AI analysis generates a Civic Health Report across all reports
+
+---
+
+## ⭐ Key Features
 
 | Feature | Description |
 |---|---|
-| **Photo-based reporting** | Upload a photo (JPG, PNG, WEBP, HEIC up to 16 MB) — no manual categorization required |
-| **Auto GPS coordinates** | Browser geolocation auto-populates coordinates on page load; manual entry available as fallback |
-| **AI issue classification** | Gemini Vision identifies issue type from 10 supported categories |
-| **Community impact scoring** | AI scores impact 1–10 based on location type, proximity to schools/hospitals, and area type |
-| **Tracking ID** | Each report receives a unique `CL-XXXX` tracking ID |
-| **Escalation letter** | Formal RTI-compatible grievance letter generated instantly and downloadable as `.txt` |
-| **Citizen AI assistant** | Chat with Gemini to ask questions about the report, department contacts, and next steps |
-| **Community feed** | Browse all reports sorted by recurrence, impact, recency, or unresolved status |
-| **Issue map** | Leaflet.js map with severity-coded pins for all geotagged reports |
-| **Status tracking** | Issues move through: Reported → Under Review → In Progress → Resolved |
+| **Photo-Based Reporting** | Upload JPG, PNG, WEBP, or HEIC images up to 16 MB |
+| **GPS Auto-Detection** | Browser geolocation with fallback to manual coordinate entry |
+| **AI Image Analysis** | Gemini Vision classifies issue type, severity, affected department |
+| **Recurrence Detection** | Detects whether the same location has been reported before |
+| **Escalation Letter Generation** | Formal RTI-ready letter, downloadable as `.txt` |
+| **Community Feed** | Public feed sortable by impact, recurrence, recency, or status |
+| **Interactive Map** | Leaflet.js map with colour-coded severity pins for all geotagged reports |
+| **Issue Tracking** | Unique tracking ID (`CL-XXXX`) for every report |
+| **AI Assistant Chat** | Per-report conversational assistant for citizen guidance |
+| **Admin Dashboard** | Status management with per-row status updates |
+| **Autonomous Follow-Up** | Auto-generates follow-up letters for stale `in_progress` reports (3+ days) |
+| **Civic Health Report** | AI-generated insights: health score, top issues, chronic zones, recommendations |
 
-### Agentic Behaviors
+---
 
-| Behavior | Trigger | What Happens |
-|---|---|---|
-| **Recurrence detection** | Every new submission | Agent queries DB for prior reports at the same location and issue type; if found, calls Gemini for pattern analysis and adjusts escalation level (standard / elevated / urgent) |
-| **Follow-up escalation** | Admin trigger | Agent identifies In Progress reports older than 3 days with no follow-up letter; generates an escalated letter with RTI Act 2005 Section 7 references |
-| **Civic health insights** | `/insights` page | Agent aggregates all report data and generates a civic health score (0–100), chronic zone identification, and 3 actionable municipal recommendations |
+## 🤖 AI-Powered Features
 
-### Administrator Workflow
+CivicLens uses **6 distinct Gemini AI roles**, each with a focused prompt:
 
-| Feature | Description |
+### Role 1 — Vision Analysis (`gemini-2.0-flash` with `gemini-1.5-flash` fallback)
+Receives the photo, location, and area type. Returns a structured JSON response containing:
+- Issue type (from 11 categories: Pothole, Broken Streetlight, Water Leakage, Sewage Overflow, Road Damage, Garbage and Waste, Damaged Footpath, Fallen Tree, Construction Obstruction, Open Manhole, Other)
+- Severity score (1–5)
+- Natural-language description
+- Responsible department and routing reasoning
+- Confidence score
+
+### Role 2 — Impact Scoring (`gemini-1.5-flash`)
+Evaluates the community impact of the specific issue and location context. Returns a 1–10 impact score with written justification used in the escalation letter.
+
+### Role 3 — Recurrence Analysis (`gemini-1.5-flash`)
+Compares the new report against all prior reports at the same location. Determines whether the problem is recurring, how many times it has occurred, and what the pattern suggests about departmental responsiveness.
+
+### Role 4 — Escalation Letter Generation (`gemini-1.5-flash`)
+Generates a formal RTI-compatible letter addressed to the correct department. Includes the issue description, location, severity, recurrence data, and a formal demand for action. Downloadable as a `.txt` file.
+
+### Role 5 — Autonomous Follow-Up Letter (`gemini-1.5-flash`)
+Triggered automatically when a report has been `in_progress` for more than 3 days without resolution. Generates a stronger follow-up letter referencing the original complaint, elapsed time, and regulatory obligations.
+
+### Role 6 — Citizen AI Assistant (`gemini-1.5-flash`)
+A conversational assistant anchored to the specific report. Answers citizen questions about escalation steps, department contacts, RTI procedures, and expected timelines. Conversation history is persisted in the database.
+
+### Role 7 — Civic Health Insights (`gemini-1.5-flash`)
+Analyses aggregated statistics across all reports (issue type distribution, severity patterns, chronic zones, resolution rates) and generates a structured Civic Health Report with a 0–100 health score, top issue analysis, chronic zone identification, and actionable recommendations for city administrators.
+
+---
+
+## 🔧 Google AI Studio & Gemini Integration
+
+### How Gemini is Used
+
+CivicLens calls the Gemini API directly from the Flask backend using the official `google-genai` Python SDK (`google-genai==2.10.0`). All API calls are server-side — the API key is never exposed to the browser.
+
+**Models used:**
+- `gemini-2.0-flash` — Primary vision model for image analysis (Role 1). Automatically falls back to `gemini-1.5-flash` if the primary model is unavailable.
+- `gemini-1.5-flash` — All text-generation roles (Roles 2–7)
+
+### How Google AI Studio is Used
+
+The live deployment at `civiclens-917815028143.asia-southeast1.run.app` was deployed directly from **Google AI Studio** using its **Deploy to Cloud Run** feature. This process:
+- Containerises the Flask application automatically
+- Deploys it to **Google Cloud Run** in the `asia-southeast1` region
+- Injects the `GEMINI_API_KEY` securely as a server-side environment variable
+- Provides a public HTTPS URL with auto-scaling
+
+> **Important:** The Flask backend is **not** hosted inside Google AI Studio itself. Google AI Studio is the deployment pipeline. The runtime is **Google Cloud Run**. This is the standard deployment path for apps built in or submitted through AI Studio.
+
+### API Key Management
+
+| Environment | Key Location |
 |---|---|
-| **Secure login** | Username/password authentication via Flask-Login with bcrypt hashing |
-| **Status management** | Update any report status with one click |
-| **Escalation dashboard** | View reports flagged as escalation-due, download follow-up letters |
-| **Follow-up generation** | Trigger AI follow-up letter generation for stale In Progress reports |
-| **Insights refresh** | Force regeneration of the cached civic health analysis |
-| **Summary statistics** | Total reports, pending, in-progress, recurring, escalation-due counts |
+| Local development | `.env` file (never committed) |
+| Google Cloud Run | Injected by AI Studio deploy pipeline |
 
 ---
 
-## AI Integration — 7 Gemini Roles
+## 🛠️ Technology Stack
 
-CivicLens uses **Google Gemini 2.0 Flash Lite** via the `google-genai` Python SDK across 7 distinct roles:
-
-| Role | Trigger | Purpose |
-|---|---|---|
-| **1+2 — Vision + Impact** | Every report submission | Analyzes image → classifies issue type (10 categories), severity (1–5), department assignment with reasoning, community impact score (1–10), confidence score |
-| **3 — Recurrence Analysis** | When prior reports exist at the same location | Identifies pattern (temporary patching, structural failure, seasonal), sets escalation level |
-| **4 — Escalation Letter** | Every report submission | Generates formal RTI-compatible grievance letter in plain text, tailored to issue type, department, and recurrence history |
-| **5 — Follow-Up Letter** | Admin "Generate Follow-Up" action | Generates escalated follow-up letter for unresolved issues, with RTI Act 2005 Section 7 references if elapsed > 14 days |
-| **6 — Citizen Assistant** | User chat messages on report pages | Answers citizen questions in context of their specific report (department contact, escalation steps, RTI process) |
-| **7 — Civic Insights** | `/insights` page (cached 10 min) | Produces civic health score (0–100), top issue breakdown, chronic zone identification, and 3 actionable recommendations |
-
-### Supported Issue Categories
-
-Pothole · Broken Streetlight · Water Leakage · Garbage / Waste · Damaged Footpath · Sewage Overflow · Fallen Tree · Road Damage · Construction Obstruction · Other
-
----
-
-## Google AI Studio Integration
-
-| Detail | Value |
+| Layer | Technology |
 |---|---|
-| **API Source** | [Google AI Studio](https://aistudio.google.com/app/apikey) |
-| **SDK** | `google-genai` v2.10.0 |
-| **Model** | `gemini-2.0-flash-lite` (all 7 roles) |
-| **Multimodal** | Image bytes sent via `types.Part.from_bytes()` with MIME type detection for vision roles |
-| **Structured output** | `response_mime_type='application/json'` enforces JSON-only responses for Roles 1, 3, and 7 |
-| **Error handling** | Every role returns safe defaults on API failure — requests never crash |
+| **Backend** | Python 3.12, Flask 3.0.3 |
+| **AI** | Google Gemini API (`gemini-2.0-flash`, `gemini-1.5-flash`) via `google-genai 2.10.0` |
+| **Database** | SQLite (via Flask-SQLAlchemy 3.1.1) |
+| **ORM** | SQLAlchemy 2.x |
+| **Frontend** | Jinja2 templates, vanilla JavaScript, custom CSS |
+| **Maps** | Leaflet.js (CDN) with OpenStreetMap tiles |
+| **Image Processing** | Pillow 12.2.0 (resize before Gemini Vision) |
+| **WSGI Server** | Gunicorn 21.2.0 |
+| **Deployment** | Google Cloud Run (via Google AI Studio) |
+| **Environment** | python-dotenv 1.0.1 |
 
 ---
 
-## Technology Stack
+## 🏗️ High-Level Architecture
 
-| Layer | Technology | Version |
+```
+Browser
+  │
+  ├── GET /report          → report.html (GPS + image upload form)
+  ├── POST /report         → report_service.py
+  │                              ├── saves image to static/uploads/
+  │                              ├── ai_service.analyze_image()      → Gemini Vision
+  │                              ├── ai_service.score_impact()       → Gemini Text
+  │                              ├── ai_service.analyze_recurrence() → Gemini Text
+  │                              └── ai_service.generate_escalation_letter() → Gemini Text
+  │
+  ├── GET /feed            → feed.html    (sortable community feed)
+  ├── GET /issue/<id>      → issue_detail.html (full analysis + AI chat)
+  ├── POST /chat/<id>      → ai_service.chat_with_assistant() → Gemini Text
+  ├── GET /map             → map.html     (Leaflet.js)
+  ├── GET /map/data        → JSON of all geotagged reports
+  ├── GET /admin           → admin.html   (status management + auto follow-up trigger)
+  ├── POST /admin/update   → status update per report
+  └── GET /insights        → ai_service.generate_civic_insights() → Gemini Text
+
+services/
+  ├── ai_service.py        (all 7 Gemini roles)
+  ├── report_service.py    (submission pipeline orchestration)
+  └── insights_service.py  (SQL aggregation for insights payload)
+```
+
+---
+
+## 📋 Project Workflow
+
+```
+Citizen                          CivicLens                        Gemini API
+   │                                 │                                 │
+   │── Upload photo + location ──►   │                                 │
+   │                                 │── analyze_image() ─────────────►│
+   │                                 │◄── issue_type, severity, dept ──│
+   │                                 │── score_impact() ──────────────►│
+   │                                 │◄── impact_score, reasoning ─────│
+   │                                 │── analyze_recurrence() ────────►│
+   │                                 │◄── is_recurring, pattern ───────│
+   │                                 │── generate_escalation_letter() ►│
+   │                                 │◄── formal letter text ──────────│
+   │◄── Confirmation + letter ───    │                                 │
+   │                                 │                                 │
+   │── Ask AI assistant ──────────►  │── chat_with_assistant() ───────►│
+   │◄── Contextual guidance ──────   │◄── response ────────────────────│
+   │                                 │                                 │
+Admin                                │                                 │
+   │── Visit /admin ─────────────►   │                                 │
+   │                                 │ [if in_progress > 3 days]       │
+   │                                 │── generate_followup_letter() ──►│
+   │                                 │◄── follow-up letter ────────────│
+   │◄── Dashboard + auto letters ─   │                                 │
+```
+
+---
+
+## 👥 User Roles & Permissions
+
+| Role | Access | Notes |
 |---|---|---|
-| Language | Python | 3.12.10 |
-| Web Framework | Flask | 3.0.3 |
-| ORM | Flask-SQLAlchemy | 3.1.1 |
-| Authentication | Flask-Login | 0.6.3 |
-| AI | Google Gemini (`google-genai`) | 2.10.0 |
-| Database (local) | SQLite | — |
-| Database (production) | PostgreSQL via `psycopg2-binary` | — |
-| Maps | Leaflet.js + OpenStreetMap | 1.9.4 |
-| WSGI Server | Gunicorn | 21.2.0 |
-| Hosting | Render | — |
-| Frontend | Jinja2 templates, plain CSS, minimal JS | — |
+| **Citizen** | `/`, `/report`, `/feed`, `/issue/<id>`, `/map`, `/insights`, AI chat | No login required |
+| **Administrator** | All citizen pages + `/admin`, `/admin/update`, letter downloads | No login required — `/admin` is open in this version |
+
+> **Note:** The admin dashboard at `/admin` is not password-protected in the current implementation. There is no authentication system. This is a known limitation appropriate for a hackathon prototype.
 
 ---
 
-## System Architecture
+## 📱 Major Screens & Functionalities
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    BROWSER (Citizen)                    │
-│  HTML/CSS/JS  ←→  Flask (Jinja2 server-side rendering) │
-└──────────────────────────┬──────────────────────────────┘
-                           │ HTTP
-┌──────────────────────────▼──────────────────────────────┐
-│                  Flask Application                       │
-│                                                         │
-│  Routes (main.py)                                       │
-│     ↓                                                   │
-│  Services                                               │
-│  ├── report_service.py  ← submission pipeline           │
-│  ├── ai_service.py      ← all 7 Gemini roles           │
-│  └── insights_service.py ← DB aggregation              │
-│     ↓                                                   │
-│  Models (SQLAlchemy)                                    │
-│  ├── Report (25 fields)                                 │
-│  ├── ChatMessage                                        │
-│  └── User                                              │
-└──────┬──────────────────────────────────────┬───────────┘
-       │                                      │
-┌──────▼──────┐                    ┌──────────▼──────────┐
-│ PostgreSQL  │                    │  Google Gemini API  │
-│ (Render)    │                    │  gemini-2.0-flash-  │
-│ SQLite      │                    │  lite (7 roles)     │
-│ (local)     │                    └─────────────────────┘
-└─────────────┘
-```
+### Home (`/`)
+Live stats (total reports, recurring issues, resolved count) and a grid of the 4 most recent reports. Entry point for new citizens.
 
----
+### Report Form (`/report`)
+- GPS auto-detection with state feedback (detecting / success / denied / error / unsupported)
+- Retry button for denied or failed GPS requests
+- Drag-and-drop or click-to-upload image with live preview
+- Manual coordinate entry as fallback (with link to Google Maps)
+- Form submission guard validates coordinates before sending
+- AI analysis takes 10–20 seconds after submission
 
-## Submission Pipeline
+### Confirmation (`/confirmation/<tracking_id>`)
+Displays the full AI analysis result: issue type, severity bar, impact score, department routing, recurrence data, and a download link for the escalation letter.
 
-```
-Citizen uploads photo + location
-         │
-         ▼
-Flask saves image → Gemini Role 1+2 (Vision + Impact Analysis)
-         │
-         ▼
-Query DB: prior reports at same location + same issue type?
-         │
-    ┌────┴────┐
-   Yes        No
-    │          │
-    ▼          ▼
-Gemini Role 3   Skip recurrence
-(Recurrence     escalation_level = 'standard'
- Analysis)
-    │
-    └────┬────┘
-         │
-         ▼
-Gemini Role 4: Generate RTI-compatible escalation letter
-         │
-         ▼
-Save complete report to DB → Redirect to confirmation page
-         │
-         ▼
-Citizen sees: AI classification, impact score, recurrence flag,
-              department assignment, letter download, AI chat
-```
+### Community Feed (`/feed`)
+All reports, sortable by: Recurring First (default), Highest Impact, Most Recent, Unresolved Only. Each card shows image, type, severity, impact, recurring badge, and status.
+
+### Issue Detail (`/issue/<id>`)
+Full report detail: AI analysis panel, recurrence block, escalation letter preview + download, follow-up letter preview + download (if generated), embedded AI assistant chat.
+
+### Issue Map (`/map`)
+Leaflet.js interactive map. All geotagged reports appear as colour-coded circle markers (green = resolved, orange = in progress, red = urgent/recurring). Clicking a marker shows a popup with tracking ID, type, and a link to the detail page.
+
+### Admin Dashboard (`/admin`)
+Table of all reports with inline status dropdown and per-row update form. Summary stats row (total / pending / escalation due). Automatically generates follow-up letters for `in_progress` reports older than 3 days on page load. Escalation due badge triggers letter download link.
+
+### Civic Health Report (`/insights`)
+Requires 5+ reports. Shows: Civic Health Score (0–100, colour-coded), Resolution Analysis paragraph, Top Issue Types with average severity, Chronic Zones (locations with 3+ reports), AI Recommendations list.
 
 ---
 
-## Application Pages
+## 🗃️ Database Overview
 
-| Page | Route | Description |
+**Table: `reports`**
+
+| Column | Type | Description |
 |---|---|---|
-| Home | `/` | Live stats (total reports, recurring, resolved), recent 4 report cards |
-| Report Issue | `/report` | Photo upload with drag-and-drop, auto GPS, area type selector — full AI analysis on submit |
-| Confirmation | `/confirmation/<id>` | AI report output, severity bar, impact score, recurrence flag, letter download, AI chat |
-| Community Feed | `/feed` | All reports sortable by recurring / impact / recent / unresolved |
-| Issue Detail | `/issue/<id>` | Full report view, status timeline, letters, AI assistant chat |
-| Map | `/map` | Leaflet map with severity-coded circle markers and popup details |
-| Civic Insights | `/insights` | AI civic health score (0–100), top issues, chronic zones, recommendations |
-| Admin Dashboard | `/admin` | Status update table, escalation flags, follow-up generation, summary stats |
-| Login | `/login` | Admin authentication |
+| `id` | Integer PK | Auto-increment |
+| `tracking_id` | String(20) | Unique `CL-XXXX` identifier |
+| `image_path` | String(255) | Relative path under `static/uploads/` |
+| `location_text` | String(500) | Human-readable location description |
+| `area_type` | String(50) | `residential`, `commercial`, `school_zone`, `main_road`, `industrial` |
+| `issue_type` | String(100) | Gemini-classified category |
+| `severity` | Integer | 1–5 (Gemini Role 1) |
+| `description` | Text | AI-generated description |
+| `department` | String(100) | Responsible department |
+| `department_reasoning` | Text | Why this department was selected |
+| `impact_score` | Integer | 1–10 (Gemini Role 2) |
+| `impact_reasoning` | Text | Community impact justification |
+| `confidence_score` | Float | AI classification confidence (0–1) |
+| `is_recurring` | Boolean | Recurrence flag (Gemini Role 3) |
+| `recurrence_count` | Integer | Number of prior reports at this location |
+| `recurrence_pattern` | Text | Pattern description |
+| `escalation_level` | String(20) | `standard`, `urgent`, `critical` |
+| `escalation_letter` | Text | Full letter text (Gemini Role 4) |
+| `followup_letter` | Text | Follow-up letter text (Gemini Role 5) |
+| `followup_generated_at` | DateTime | When follow-up was auto-generated |
+| `escalation_due` | Boolean | Whether escalation is due |
+| `latitude` | Float | GPS latitude (nullable) |
+| `longitude` | Float | GPS longitude (nullable) |
+| `status` | String(30) | `reported`, `under_review`, `in_progress`, `resolved` |
+| `created_at` | DateTime | UTC timestamp |
 
----
+**Table: `chat_messages`**
 
-## User Roles
-
-| Feature | Citizen (anonymous) | Administrator |
+| Column | Type | Description |
 |---|---|---|
-| Report a civic issue | ✅ | ✅ |
-| View community feed | ✅ | ✅ |
-| View issue map | ✅ | ✅ |
-| View civic insights | ✅ | ✅ |
-| Download escalation letter | ✅ | ✅ |
-| Use AI assistant chat | ✅ | ✅ |
-| Update issue status | ❌ | ✅ |
-| Generate follow-up letters | ❌ | ✅ |
-| Refresh insights cache | ❌ | ✅ |
-
-Citizens do not require registration or login.
+| `id` | Integer PK | Auto-increment |
+| `report_id` | Integer FK | References `reports.id` |
+| `role` | String(10) | `user` or `assistant` |
+| `content` | Text | Message text |
+| `created_at` | DateTime | UTC timestamp |
 
 ---
 
-## Database Schema
-
-**Three tables:**
-
-**`reports`** — Core entity (25 columns):
-- Identity: `id`, `tracking_id` (`CL-XXXX`)
-- Submission: `image_path`, `location_text`, `area_type`, `latitude`, `longitude`
-- AI output (Role 1+2): `issue_type`, `severity`, `description`, `department`, `department_reasoning`, `impact_score`, `impact_reasoning`, `confidence_score`
-- AI output (Role 3): `is_recurring`, `recurrence_count`, `recurrence_pattern`, `escalation_level`
-- Letters (Roles 4+5): `escalation_letter`, `followup_letter`, `followup_generated_at`, `escalation_due`
-- Lifecycle: `status`, `created_at`
-
-**`chat_messages`** — Stores Citizen Assistant conversation history per report.
-
-**`users`** — Admin accounts only (`username`, `password_hash`, `is_admin`).
-
-**Database:** SQLite locally; PostgreSQL on Render (auto-detected via `DATABASE_URL` environment variable).
-
----
-
-## Folder Structure
+## 📁 Folder Structure
 
 ```
 CivicLens/
-├── main.py                   # Flask app — all routes
-├── models.py                 # SQLAlchemy models (Report, ChatMessage, User)
-├── config.py                 # Configuration (DB, uploads, Gemini, Flask-Login)
-├── seed.py                   # Demo data seeder (8 realistic Solapur reports)
-├── create_admin.py           # Interactive admin user setup (local use)
-├── create_admin_auto.py      # Non-interactive admin setup for build.sh
-├── build.sh                  # Render build script (install → admin → seed)
-├── Procfile                  # Gunicorn start command
-├── runtime.txt               # Python 3.12.10
-├── requirements.txt          # Python dependencies
-├── .env.example              # Environment variable template
+├── main.py                    # Flask app + all route handlers
+├── config.py                  # Configuration class with env var validation
+├── models.py                  # SQLAlchemy models: Report, ChatMessage
+├── seed.py                    # Demo data seeder (8 pre-analysed reports)
+│
 ├── services/
-│   ├── ai_service.py         # All 7 Gemini roles
-│   ├── report_service.py     # Report submission pipeline
-│   └── insights_service.py   # DB aggregation for Gemini Role 7
+│   ├── __init__.py
+│   ├── ai_service.py          # All 7 Gemini roles
+│   ├── report_service.py      # Report submission pipeline orchestration
+│   └── insights_service.py    # SQL aggregation queries for Civic Health
+│
 ├── templates/
-│   ├── base.html             # Base layout (nav, footer)
-│   ├── home.html             # Home page
-│   ├── report.html           # Issue submission form
-│   ├── confirmation.html     # Post-submission AI results
-│   ├── feed.html             # Community feed
-│   ├── issue_detail.html     # Full issue view
-│   ├── map.html              # Leaflet map
-│   ├── insights.html         # Civic health dashboard
-│   ├── admin.html            # Admin dashboard
-│   └── login.html            # Admin login
+│   ├── base.html              # Navigation, flash messages, footer
+│   ├── home.html              # Landing page with live stats
+│   ├── report.html            # Report form (GPS + image upload)
+│   ├── confirmation.html      # Post-submission result page
+│   ├── feed.html              # Community feed with sort controls
+│   ├── issue_detail.html      # Full report detail + AI chat
+│   ├── map.html               # Leaflet.js interactive map
+│   ├── admin.html             # Admin status management dashboard
+│   └── insights.html          # Civic Health Report
+│
 ├── static/
-│   ├── style.css             # Design system — civic color palette, components
-│   ├── map.js                # Leaflet map initialization and pin rendering
-│   ├── chat.js               # Citizen AI assistant chat
-│   └── uploads/              # Uploaded report images (gitignored except placeholder)
+│   ├── style.css              # Full custom CSS design system
+│   ├── chat.js                # AI assistant chat WebSocket-free handler
+│   ├── map.js                 # Leaflet map initialisation
+│   └── uploads/               # User-uploaded images (gitignored)
+│
+├── requirements.txt
+├── Procfile                   # gunicorn main:app --workers 1 --timeout 120
+├── runtime.txt                # python-3.12.3
+├── .env.example               # Environment variable reference
+└── .gitignore
 ```
 
 ---
 
-## Local Installation
+## ⚙️ Installation Guide
 
 ### Prerequisites
 
 - Python 3.12+
+- A Google Gemini API key (free tier available at [Google AI Studio](https://aistudio.google.com/app/apikey))
 - Git
 
-### Steps
+### Clone the Repository
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/JagtapRajnandini/CivicLens.git
 cd CivicLens
-
-# 2. Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Configure environment variables
-cp .env.example .env
-# Edit .env — add your GEMINI_API_KEY and SECRET_KEY
-
-# 5. Seed demo data (run once)
-python seed.py
-
-# 6. Create an admin account
-python create_admin.py
-
-# 7. Start the development server
-python main.py
 ```
 
-Open [http://localhost:5000](http://localhost:5000)
+### Create and Activate a Virtual Environment
+
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# macOS / Linux
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
 
 ---
 
-## Environment Variables
+## 🔑 Environment Variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `GEMINI_API_KEY` | ✅ Required | Google AI Studio API key — [Get one here](https://aistudio.google.com/app/apikey) |
-| `SECRET_KEY` | ✅ Required | Flask session secret — generate with `python -c "import secrets; print(secrets.token_hex(32))"` |
-| `DATABASE_URL` | Production only | PostgreSQL connection string — Render sets this automatically when a database is linked |
-| `ADMIN_USERNAME` | Build only | Admin username for automated setup via `build.sh` (default: `admin`) |
-| `ADMIN_PASSWORD` | Build only | Admin password for automated setup via `build.sh` |
+Copy `.env.example` to `.env` and fill in your values:
 
-See `.env.example` for the complete template.
+```bash
+cp .env.example .env
+```
+
+```env
+# Required: Google Gemini API key
+# Get yours free at: https://aistudio.google.com/app/apikey
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Required: Flask session secret key
+# Generate: python -c "import secrets; print(secrets.token_hex(32))"
+SECRET_KEY=your_secret_key_here
+
+# Optional: Enable debug mode — NEVER set true in production
+FLASK_DEBUG=false
+```
 
 ---
 
-## Deployment on Render
+## 🚀 Local Setup
 
-### Setup
+```bash
+# 1. Run the app
+python main.py
+# or
+python -m flask --app main run
 
-1. Push the repository to GitHub.
-2. Go to [render.com](https://render.com) → **New → PostgreSQL** — create a free database and copy the **Internal Database URL**.
-3. Go to **New → Web Service** → connect the GitHub repository.
-4. Configure the service:
+# 2. Open in browser
+# http://127.0.0.1:5000
 
-| Setting | Value |
+# 3. (Optional) Load demo data
+python seed.py
+```
+
+The database (`instance/civiclens.db`) is created automatically on first run. The `static/uploads/` directory is created automatically.
+
+---
+
+## ☁️ Deployment
+
+### Google Cloud Run (via Google AI Studio) — Live Deployment
+
+The live application is deployed on **Google Cloud Run** in the `asia-southeast1` region. Deployment was done using Google AI Studio's **Deploy to Cloud Run** feature, which containerises the Flask app and injects the `GEMINI_API_KEY` securely into the server environment.
+
+**Live URL:** `https://civiclens-917815028143.asia-southeast1.run.app`
+
+### Manual Deployment (Alternative)
+
+CivicLens can also be deployed to any platform that supports Python/Gunicorn, such as Render.com:
+
+**Build command:**
+```
+pip install -r requirements.txt
+```
+
+**Start command:**
+```
+gunicorn main:app --workers 1 --timeout 120
+```
+
+Required environment variables: `GEMINI_API_KEY`, `SECRET_KEY`
+
+> **SQLite note:** SQLite is used as the database. On ephemeral hosting platforms (Cloud Run, Render), the database resets on each redeploy. For production use, replace with PostgreSQL.
+
+---
+
+## 🔗 Live Links
+
+| Resource | URL |
 |---|---|
-| **Runtime** | Python |
-| **Build Command** | `bash build.sh` |
-| **Start Command** | `gunicorn main:app -w 1 --timeout 120` |
-| **Python Version** | `3.12.10` (set in `runtime.txt`) |
+| **Live Application** | https://civiclens-917815028143.asia-southeast1.run.app |
+| **GitHub Repository** | https://github.com/JagtapRajnandini/CivicLens |
+| **Submission Document** | https://docs.google.com/document/d/1My_zUBl6AuNe4NeJc-VeWB8FaPOk6v-AGC-doZM1n_A/edit?usp=sharing |
 
-5. Add environment variables:
+---
 
-| Variable | Value |
+## 🔐 Demo Credentials
+
+| Role | Access |
 |---|---|
-| `GEMINI_API_KEY` | Your key from Google AI Studio |
-| `SECRET_KEY` | A random 64-character hex string |
-| `DATABASE_URL` | Internal Database URL from Render PostgreSQL |
-| `ADMIN_PASSWORD` | Password for the admin account |
+| **Citizen** | No login required — visit [/report](https://civiclens-917815028143.asia-southeast1.run.app/report) to file a report |
+| **Admin** | No login required — visit [/admin](https://civiclens-917815028143.asia-southeast1.run.app/admin) to access the dashboard |
 
-6. Click **Create Web Service**. The `build.sh` script installs dependencies, creates the admin account, and seeds demo data automatically — no manual shell access required.
+> The admin panel is open (no authentication) in this prototype version.
 
 ---
 
-## Demo Credentials
+## 🔭 Future Scope
 
-> These credentials are for the evaluation environment only.
-
-| Field | Value |
-|---|---|
-| **Live URL** | https://civiclens-l853.onrender.com |
-| **Admin Login** | https://civiclens-l853.onrender.com/login |
-| **Username** | `admin` |
-| **Password** | `CivicLens@2026` |
-
----
-
-## Challenges Faced
-
-**Gemini Vision prompt and JSON mode conflict:** The original prompt included a JSON template with angle-bracket placeholders (`"<one of the valid categories>"`). When `response_mime_type='application/json'` is active, Gemini sometimes returns the template structure literally instead of filling it in. The fix was to remove the JSON template entirely and describe each field in plain English, letting the SDK enforce JSON structure.
-
-**`gemini-1.5-flash` deprecation on v1beta API:** During deployment, Roles 3–7 (which used `gemini-1.5-flash`) began returning 404 NOT_FOUND errors because this model was removed from the v1beta endpoint used by `google-genai` v2.x. Switching all roles to `gemini-2.0-flash-lite` resolved this.
-
-**Free tier quota exhaustion:** The `gemini-2.0-flash` model has a stricter free-tier quota than `gemini-2.0-flash-lite`. After several test submissions during development, the quota was exhausted mid-session. Migrating to `gemini-2.0-flash-lite` resolved both the quota and model availability issues.
-
-**Gunicorn timeout for Gemini calls:** Gemini API calls for image analysis take 10–20 seconds. The default gunicorn timeout of 30 seconds caused worker timeouts under load. Setting `--timeout 120` resolved this.
-
-**Render free tier — no shell access:** Render's free web service tier does not provide a Shell tab. Database seeding and admin account creation, which normally require interactive terminal commands, were automated via `build.sh` and `create_admin_auto.py` using environment variables (`ADMIN_USERNAME`, `ADMIN_PASSWORD`), eliminating the need for shell access entirely.
-
-**PostgreSQL URL format:** Render supplies `DATABASE_URL` as `postgres://...` but SQLAlchemy requires `postgresql://...`. A one-line string replacement in `config.py` handles this automatically without any manual intervention.
+- **Authentication** — Role-based login for citizens and administrators
+- **PostgreSQL** — Persistent database for production deployments
+- **Push Notifications** — Status change alerts for citizens via email or SMS
+- **Multilingual Support** — Report submission and letters in regional Indian languages
+- **Department Portal** — Dedicated view for municipal department officers
+- **Mobile PWA** — Progressive Web App with offline photo capture
+- **Analytics Dashboard** — Ward-level heatmaps and trend charts for city planners
+- **Bulk Escalation** — Auto-bundle recurring issues at the same location into a single escalation batch
+- **Resolved Verification** — Require photo evidence from authorities to close reports
 
 ---
 
-## Future Scope
+## 🧗 Challenges Faced
 
-- **Real municipal API integration** — direct submission to state government grievance portals (CPGRAMS, state-specific APIs)
-- **WhatsApp / SMS notifications** — citizens receive status updates via messaging platforms
-- **Autonomous scheduled follow-up** — external scheduler to trigger escalation letters without admin action
-- **Community verification** — citizen upvoting to validate reports before escalation
-- **Multilingual letters** — Marathi and Hindi complaint letters using Gemini's multilingual capability
-- **Predictive issue forecasting** — predict high-risk zones using historical seasonal patterns
+**Structured JSON from Gemini Vision** — Getting Gemini to reliably return parseable JSON with correct field types required multi-stage prompt engineering with explicit schema definitions, response MIME type enforcement, and graceful fallback to safe defaults on every parse failure.
 
----
+**Gemini model selection** — `gemini-2.0-flash` offers superior vision capability but has different availability characteristics than `gemini-1.5-flash`. Implementing a primary/fallback chain with per-exception logging required careful error handling.
 
-## Impact
+**Gunicorn timeout with AI calls** — Gemini API calls for complex analysis take 10–20 seconds. Gunicorn's default 30-second worker timeout killed requests mid-analysis. The fix was `--timeout 120`.
 
-- Bridges the gap between a citizen seeing a problem and having a formally documented, escalatable record
-- Recurrence detection exposes chronic infrastructure failures that would otherwise be treated as isolated incidents
-- RTI-compatible letters give citizens immediate, usable leverage without requiring legal knowledge or government portal access
-- Civic health analytics give administrators and community leaders a structured view of infrastructure health
+**SQLite concurrency** — Multiple Gunicorn workers cause SQLite write-lock errors. The fix was `--workers 1`, which is safe for a hackathon workload but limits throughput.
+
+**GPS accuracy on mobile** — `enableHighAccuracy: true` triggers a 12-second GPS acquisition on first use. The location state machine handles detecting / success / denied / error / unsupported states without blocking the user from entering coordinates manually.
+
+**Recurrence detection without embeddings** — Without a vector database, recurrence is detected by SQL query on `location_text` and `issue_type`. This works well for exact and near-exact location strings but would miss paraphrase variants in production.
 
 ---
 
-## Learning Outcomes
+## 📚 Learning Outcomes
 
-- Designing multi-role AI agent pipelines with conditional branching (7 distinct Gemini roles)
-- Prompt engineering for structured JSON outputs with vision models
-- Handling model deprecation and quota limits in production deployments
-- Production deployment with Flask + PostgreSQL + Gunicorn on Render
-- Automating database setup and admin creation for platforms without shell access
-- Database schema design for AI-enriched civic data
+- Designing multi-role Gemini prompt pipelines with per-role structured output schemas
+- Primary/fallback model chains using the `google-genai` 2.x SDK
+- Autonomous background actions triggered by page load (follow-up letter generation)
+- Building civic-domain AI applications with RTI-compatible formal language generation
+- Deploying Flask applications to Google Cloud Run via Google AI Studio
+- GPS browser API state machine design for graceful degradation
+- Integrating Leaflet.js with a dynamic Flask JSON endpoint
 
 ---
 
-## Acknowledgements
+## 💡 Impact
 
-- [Google AI Studio](https://aistudio.google.com) — Gemini API
-- [Leaflet.js](https://leafletjs.com) + [OpenStreetMap](https://openstreetmap.org) — mapping
-- [Render](https://render.com) — hosting
-- Coding Ninjas × Google for Developers — Vibe2Ship 2026 hackathon
+- **Citizens** gain a voice without needing legal knowledge, civic expertise, or knowing which department to contact.
+- **Recurring issues** are surfaced automatically, creating accountability pressure on departments.
+- **Formal letters** are accessible to everyone — not just those who can afford legal help.
+- **City administrators** get an AI-generated Civic Health Report showing the worst-affected areas and actionable recommendations.
+
+India loses ₹6,000 crores annually from delayed infrastructure fixes (NITI Aayog, 2023). CivicLens makes the first step — reporting and escalating — frictionless for every citizen.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 🙏 Acknowledgements
+
+- [Google Gemini API](https://ai.google.dev/) — Multimodal AI powering all 7 roles
+- [Google AI Studio](https://aistudio.google.com/) — Development environment and Cloud Run deployment
+- [Leaflet.js](https://leafletjs.com/) — Open-source interactive maps
+- [OpenStreetMap](https://www.openstreetmap.org/) — Map tiles
+- [Flask](https://flask.palletsprojects.com/) — Python web framework
+- [Vibe2Ship 2026](https://codingninjas.com) — Coding Ninjas × Google for Developers hackathon
+- NITI Aayog 2023 infrastructure loss statistics and Urban Governance Survey 2024 cited for problem framing
