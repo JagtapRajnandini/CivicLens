@@ -225,9 +225,7 @@ Admin                                │                                 │
 | Role | Access | Notes |
 |---|---|---|
 | **Citizen** | `/`, `/report`, `/feed`, `/issue/<id>`, `/map`, `/insights`, AI chat | No login required |
-| **Administrator** | All citizen pages + `/admin`, `/admin/update`, letter downloads | No login required — `/admin` is open in this version |
-
-> **Note:** The admin dashboard at `/admin` is not password-protected in the current implementation. There is no authentication system. This is a known limitation appropriate for a hackathon prototype.
+| **Administrator** | All citizen pages + `/admin`, `/admin/update`, letter downloads | Login required (see Demo Credentials below) |
 
 ---
 
@@ -466,18 +464,16 @@ Required environment variables: `GEMINI_API_KEY`, `SECRET_KEY`
 
 ## 🔐 Demo Credentials
 
-| Role | Access |
-|---|---|
-| **Citizen** | No login required — visit [/report](https://civiclens-917815028143.asia-southeast1.run.app/report) to file a report |
-| **Admin** | No login required — visit [/admin](https://civiclens-917815028143.asia-southeast1.run.app/admin) to access the dashboard |
-
-> The admin panel is open (no authentication) in this prototype version.
+| Role | Access | Credentials |
+|---|---|---|
+| **Citizen** | No login required — visit [/report](https://civiclens-917815028143.asia-southeast1.run.app/report) to file a report | — |
+| **Admin** | Login required to access `/admin` dashboard | **Username:** `admin` · **Password:** `CivicLens@2026` |
 
 ---
 
 ## 🔭 Future Scope
 
-- **Authentication** — Role-based login for citizens and administrators
+- **Role-based access** — Separate portals for citizen, department officer, and super-admin roles
 - **PostgreSQL** — Persistent database for production deployments
 - **Push Notifications** — Status change alerts for citizens via email or SMS
 - **Multilingual Support** — Report submission and letters in regional Indian languages
